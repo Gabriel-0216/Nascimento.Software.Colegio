@@ -1,12 +1,7 @@
-﻿using Domain.Entity;
+﻿using Dapper;
+using Domain.Entity;
 using Infra.Infra.Contracts;
-using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using Dapper;
-using System.Threading.Tasks;
 
 namespace Infra.Infra.Repositories
 {
@@ -27,16 +22,28 @@ namespace Infra.Infra.Repositories
                     (Id, Title, Resume, Created_Date, Updated_At)
                                     VALUES
                     (@Id, @Title, @Resume, @Created_Date, @Updated_At)";
-            using(var sql = new SqlConnection(GetConnection()))
+            using (var sql = new SqlConnection(GetConnection()))
             {
-               return await sql.ExecuteAsync(query, param: param,
-                   commandType: System.Data.CommandType.Text).ConfigureAwait(false) > 0;    
+                return await sql.ExecuteAsync(query, param: param,
+                    commandType: System.Data.CommandType.Text).ConfigureAwait(false) > 0;
             }
         }
 
-        public Task<bool> Delete(Course entity)
+        public async Task<bool> Delete(Course entity)
         {
-            throw new NotImplementedException();
+            var param = new DynamicParameters();
+            param.Add("Id", entity.Id);
+
+            var query = @"DELETE FROM 
+                            [Course]
+                            WHERE
+                           Id = @Id";
+            using (var sql = new SqlConnection(GetConnection()))
+            {
+                return await sql
+                    .ExecuteAsync(query, param: param, commandType: System.Data.CommandType.Text)
+                    .ConfigureAwait(false) > 0;
+            }
         }
 
         public async Task<IEnumerable<Course>> GetAll()
@@ -51,14 +58,46 @@ namespace Infra.Infra.Repositories
             }
         }
 
-        public Task<Course> GetOne(string Id)
+        public async Task<Course> GetOne(string Id)
         {
-            throw new NotImplementedException();
+            var query = @"SELECT [Id], [Title], [Resume], [Created_Date], [Updated_At]
+                                        FROM
+                                        [Course]
+                                        WHERE
+                                        [Id] = @Id";
+
+            var param = new DynamicParameters();
+            param.Add("Id", Id);
+            using (var sql = new SqlConnection(GetConnection()))
+            {
+                return await sql
+                    .QueryFirstOrDefaultAsync<Course>(query, param: param,
+                    commandType: System.Data.CommandType.Text)
+                    .ConfigureAwait(false);
+            }
         }
 
-        public Task<bool> Update(Course entity)
+        public async Task<bool> Update(Course entity)
         {
-            throw new NotImplementedException();
+            var query = @"UPDATE [Course] 
+                                SET
+                        [Title] = @Title, [Resume] = @Resume, [Updated_At] = @Updated_At
+                                WHERE
+                        [Id] = @Id";
+
+            var param = new DynamicParameters();
+            param.Add("Id", entity.Id);
+            param.Add("Title", entity.Title);
+            param.Add("Resume", entity.Resume);
+            param.Add("Updated_At", entity.Updated_At);
+
+            using (var sql = new SqlConnection(GetConnection()))
+            {
+                return await sql
+                    .ExecuteAsync(query, param: param,
+                    commandType: System.Data.CommandType.Text)
+                    .ConfigureAwait(false) > 0;
+            }
         }
     }
 }

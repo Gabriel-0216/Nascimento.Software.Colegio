@@ -1,11 +1,6 @@
-﻿using Domain.Entity;
+﻿using Dapper;
+using Domain.Entity;
 using Infra.Infra.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Dapper;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
 
 namespace Infra.Infra.Repositories
@@ -36,31 +31,28 @@ namespace Infra.Infra.Repositories
                     commandType: System.Data.CommandType.Text) > 0;
             }
         }
-
         public async Task<bool> Delete(Student entity)
         {
             var param = new DynamicParameters();
             param.Add("Id", entity.Id);
             var query = $@"DELETE FROM Student WHERE Id = @Id";
 
-            using(var sql = new SqlConnection(GetConnection()))
+            using (var sql = new SqlConnection(GetConnection()))
             {
-                return await sql.ExecuteAsync(query, param: param, 
+                return await sql.ExecuteAsync(query, param: param,
                     commandType: System.Data.CommandType.Text) > 0;
             }
         }
-
         public async Task<IEnumerable<Student>> GetAll()
         {
             var query = $@"SELECT [Id], [Name], [Phone], [Email], 
             [Birthdate], [Create_Date], [Updated_Date] FROM [Student]";
 
-            using(var sql = new SqlConnection(GetConnection()))
+            using (var sql = new SqlConnection(GetConnection()))
             {
                 return await sql.QueryAsync<Student>(query, commandType: System.Data.CommandType.Text).ConfigureAwait(false);
             }
         }
-
         public async Task<Student> GetOne(string Id)
         {
             var param = new DynamicParameters();
@@ -69,16 +61,33 @@ namespace Infra.Infra.Repositories
             var query = $@"SELECT Id, Name, Phone, Email, 
             Birthdate, Create_Date, Updated_Date FROM Student
             WHERE Id = @Id";
-            using(var sql = new SqlConnection(GetConnection()))
+            using (var sql = new SqlConnection(GetConnection()))
             {
                 return await sql.QueryFirstOrDefaultAsync<Student>(query, param: param, commandType: System.Data.CommandType.Text).ConfigureAwait(false);
             }
-
         }
-
-        public Task<bool> Update(Student entity)
+        public async Task<bool> Update(Student entity)
         {
-            throw new NotImplementedException();
+            var query = @"UPDATE [Student] SET 
+                            [Name] = @Name, [Phone] = @Phone, [Email] = @Email,
+                            [Birthdate] = @Birthdate, [Updated_Date] = @Updated_At
+                                        WHERE 
+                            [Id] = @Id";
+
+            var param = new DynamicParameters();
+            param.Add("Id", entity.Id);
+            param.Add("Name", entity.Name);
+            param.Add("Phone", entity.Phone);
+            param.Add("Email", entity.Email);
+            param.Add("Birthdate", entity.Birthdate);
+            param.Add("Updated_At", entity.Updated_Date);
+            using (var sql = new SqlConnection(GetConnection()))
+            {
+                return await sql
+                    .ExecuteAsync(query, param: param,
+                    commandType: System.Data.CommandType.Text)
+                    .ConfigureAwait(false) > 0;
+            }
         }
     }
 }
