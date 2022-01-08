@@ -12,6 +12,17 @@ namespace Nascimento.Software.Colegio.API.Controllers
     public class AuthManagerController : ControllerBase
     {
         [AllowAnonymous]
+        [HttpGet]
+        [Route("test")]
+        public async Task<ActionResult> Get()
+        {
+            return Ok(new
+            {
+                error = true,
+                errorText = "Testing",
+            });
+        }
+        [AllowAnonymous]
         [HttpPost]
         [Route("user-register")]
         public async Task<ActionResult> UserRegister
@@ -41,6 +52,7 @@ namespace Nascimento.Software.Colegio.API.Controllers
                     {
                         Token = token,
                         Success = true,
+                        Email = user.Email,
                     });
                 }
                 else
@@ -50,6 +62,17 @@ namespace Nascimento.Software.Colegio.API.Controllers
             }
             return BadRequest(new { Success = false, Error = "Login unsuccessful" });
 
+        }
+        [Authorize]
+        [HttpGet]
+        [Route("get-user-by-email")]
+        public async Task<ActionResult> GetUserById([FromServices] IUserRepository _userRepo,
+            [FromHeader] string email)
+        {
+            var userExists = await _userRepo.GetUserByEmail(email);
+            if (userExists != null) return Ok(userExists);
+
+            return BadRequest();
         }
         [AllowAnonymous]
         [HttpPost]
@@ -82,6 +105,7 @@ namespace Nascimento.Software.Colegio.API.Controllers
                     {
                         Success = true,
                         Token = token,
+                        Email = userValid.Email,
                     });
                 }
                 return BadRequest(new

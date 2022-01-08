@@ -1,6 +1,8 @@
-﻿namespace Nascimento.Software.Colegio.API.Services
+﻿using Colegio.WebApp.Models.User;
+
+namespace Colegio.WebApp.Services.LoginResult
 {
-    public class AuthResult
+    public sealed class AuthResult
     {
         public string? Token { get; set; }
         public bool Success { get; set; } = false;
