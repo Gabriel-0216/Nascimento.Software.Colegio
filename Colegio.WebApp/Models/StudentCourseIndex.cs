@@ -2,8 +2,8 @@
 {
     public class StudentCourseIndex
     {
-        public Course Course { get; set; }
-        public Student Student { get; set; }
+        public Course Course { get; set; } = new Course();
+        public Student Student { get; set; } = new Student();
 
     }
 }

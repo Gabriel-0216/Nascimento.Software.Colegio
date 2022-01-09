@@ -14,7 +14,13 @@ namespace Colegio.WebApp.Controllers
             _logger = logger;
         }
 
-        private string GetToken() => Request.Cookies["JwtToken"];
+        private string GetToken()
+        {
+            var token = Request.Cookies["JwtToken"];
+            if (token == null) return string.Empty;
+
+            return token;
+        }
 
         private bool IsTokenValid()
         {
@@ -28,14 +34,14 @@ namespace Colegio.WebApp.Controllers
             return true;
 
         }
-        public async Task<IActionResult> Index([FromServices] IAuthService _servc)
+        public IActionResult Index([FromServices] IAuthService _servc)
         {
             if (!IsTokenValid()) return RedirectToAction("Login", "Home");
         
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> Login()
+        public IActionResult Login()
         {
             var token = Request.Cookies["JwtToken"];
             var tokenExpireDate = Request.Cookies["ExpireDate"];
@@ -77,6 +83,9 @@ namespace Colegio.WebApp.Controllers
                     return Unauthorized();
                 }
 
+                if (string.IsNullOrWhiteSpace(result.Token) || string.IsNullOrWhiteSpace(result.Email)) return Unauthorized();
+       
+
                 if (!SetTokenInCookies(result.Token, result.Email)) return Unauthorized();
 
                 return RedirectToAction("Index", "Home");
@@ -84,7 +93,7 @@ namespace Colegio.WebApp.Controllers
             return View();
         }
         [HttpGet]
-        public async Task<IActionResult> Register()
+        public IActionResult Register()
         {
             Response.Cookies.Delete("JwtToken");
 
@@ -104,6 +113,8 @@ namespace Colegio.WebApp.Controllers
                 {
                     return Error();
                 }
+                if (string.IsNullOrWhiteSpace(insert.Token) || string.IsNullOrWhiteSpace(insert.Email)) return Unauthorized();
+
                 if (!SetTokenInCookies(insert.Token, insert.Email)) return Unauthorized();
 
                 return RedirectToAction("Index", "Home");

@@ -29,9 +29,9 @@ namespace Colegio.WebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<UserViewModel>();
-                return content;
+                if(content !=null) return content;
             }
-            return null;
+            throw new Exception("Not found");
         }
 
         public async Task<AuthResult> Login(LoginViewModel login)

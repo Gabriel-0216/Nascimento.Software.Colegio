@@ -16,7 +16,7 @@ namespace Colegio.WebApp.Services
             _client = _clientFactory;
             _config = config;
         }
-        public async Task<bool> Add(Course entity, string jwtToken)
+        public async Task<ServiceReturn> Add(Course entity, string jwtToken)
         {
             var client = _client.CreateClient();
             client.BaseAddress = new Uri($"{_config.GetSection("ApiColegio").Value}");
@@ -30,9 +30,22 @@ namespace Colegio.WebApp.Services
             var response = await client.PostAsync("/api/Course/insert-new-course", courseJson);
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return new ServiceReturn
+                {
+                    Success = true,
+                };
             }
-            return false;
+            var serviceReturn = new ServiceReturn();
+            serviceReturn.Success = false;
+            serviceReturn.Errors = new List<Error>();
+            var message = await response.Content.ReadAsStringAsync();
+            serviceReturn.Errors.Add(new Error
+            {
+                Code = response.StatusCode.ToString(),
+                Message = message == null ? string.Empty : message
+            });
+
+            return serviceReturn;
         }
 
         public async Task<IEnumerable<Course>> GetAll(string jwtToken)
@@ -63,12 +76,12 @@ namespace Colegio.WebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<Course>();
-                return content;
+                if (content != null) return content;
             }
-            return null;
+            throw new Exception();
 
         }
-        public async Task<bool> Remove(Course entity, string jwtToken)
+        public async Task<ServiceReturn> Remove(Course entity, string jwtToken)
         {
             var client = _client.CreateClient();
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{_config.GetSection("ApiColegio").Value}/api/Course/delete-course");
@@ -77,12 +90,25 @@ namespace Colegio.WebApp.Services
             var response = await client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return new ServiceReturn
+                {
+                    Success = true,
+                };
             }
-            return false;
+            var serviceReturn = new ServiceReturn();
+            serviceReturn.Success = false;
+            serviceReturn.Errors = new List<Error>();
+            var message = await response.Content.ReadAsStringAsync();
+            serviceReturn.Errors.Add(new Error
+            {
+                Code = response.StatusCode.ToString(),
+                Message = message == null ? string.Empty : message
+            });
+
+            return serviceReturn;
         }
 
-        public async Task<bool> Update(Course entity, string jwtToken)
+        public async Task<ServiceReturn> Update(Course entity, string jwtToken)
         {
             var p = new
             {
@@ -102,9 +128,22 @@ namespace Colegio.WebApp.Services
             var response = await client.PutAsync("/api/Course/update-course", courseJson);
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return new ServiceReturn
+                {
+                    Success = true,
+                };
             }
-            return false;
+            var serviceReturn = new ServiceReturn();
+            serviceReturn.Success = false;
+            serviceReturn.Errors = new List<Error>();
+            var message = await response.Content.ReadAsStringAsync();
+            serviceReturn.Errors.Add(new Error
+            {
+                Code = response.StatusCode.ToString(),
+                Message = message == null ? string.Empty : message
+            });
+
+            return serviceReturn;
 
         }
     }

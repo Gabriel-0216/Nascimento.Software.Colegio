@@ -12,7 +12,13 @@ namespace Colegio.WebApp.Controllers
         {
             _courseService = courseService;
         }
-        private string GetToken() => Request.Cookies["JwtToken"];
+        private string GetToken()
+        {
+            var token = Request.Cookies["JwtToken"];
+            if (token == null) return string.Empty;
+
+            return token;
+        }
 
         private bool IsTokenValid()
         {
@@ -35,7 +41,7 @@ namespace Colegio.WebApp.Controllers
             return View(coursesList);
         }
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
@@ -50,15 +56,15 @@ namespace Colegio.WebApp.Controllers
             if (ModelState.IsValid)
             {
                 var inserted = await _courseService.Add(model, GetToken());
-                if (inserted) return await Index();
+                if (inserted.Success) return await Index();
 
-                return await Error(
-              new CourseErrorViewModel
-              {
-                  ErrorMessage = "The server response wasn't sucesfull!",
-                  Success = false
-              }
-                 );
+                var errorMessage = new List<string>();
+                errorMessage.Add("The server response wasn't succesful");
+                return Error(new CourseErrorViewModel()
+                {
+                    ErrorMessage = errorMessage,
+                    Success = false,
+                });
             }
             return RedirectToAction("Error", "Home");
         }
@@ -70,13 +76,13 @@ namespace Colegio.WebApp.Controllers
             var course = await _courseService.GetById(Id, GetToken());
             if (course == null)
             {
-                return await Error(
-              new CourseErrorViewModel
-              {
-                  ErrorMessage = "There's a problem with the data you sent!",
-                  Success = false
-              }
-          );
+                var errorMessage = new List<string>();
+                errorMessage.Add("The data you sent wasn't ok");
+                return Error(new CourseErrorViewModel()
+                {
+                    ErrorMessage = errorMessage,
+                    Success = false,
+                });
             }
 
             return View(course);
@@ -89,23 +95,24 @@ namespace Colegio.WebApp.Controllers
             if (ModelState.IsValid)
             {
                 var updated = await _courseService.Update(model, GetToken());
-                if (updated) return RedirectToAction("Index", "Course");
+                if (updated.Success) return RedirectToAction("Index", "Course");
 
-                return await Error(
-              new CourseErrorViewModel
-              {
-                  ErrorMessage = "the server response wasn't sucesful!",
-                  Success = false
-              }
-          );
+                var error = new CourseErrorViewModel();
+                error.Success = false;
+                foreach (var item in updated.Errors)
+                {
+                    error.ErrorMessage.Add(item.Message);
+                }
+
+                return Error(error);
             }
-            return await Error(
-              new CourseErrorViewModel
-              {
-                  ErrorMessage = "There's a problem with the data you sent!",
-                  Success = false
-              }
-          );
+            var errorMessage = new List<string>();
+            errorMessage.Add("The data you sent wasn't ok");
+            return Error(new CourseErrorViewModel()
+            {
+                ErrorMessage = errorMessage,
+                Success = false,
+            });
         }
         [HttpGet]
         public async Task<IActionResult> Delete(string Id)
@@ -116,13 +123,13 @@ namespace Colegio.WebApp.Controllers
 
             if (course == null) 
             {
-                return await Error(
-                  new CourseErrorViewModel
-                  {
-                      ErrorMessage = "There's a problem with the data you sent!",
-                      Success = false
-                  }
-              );
+                var errorMessage = new List<string>();
+                errorMessage.Add("This course don't exists");
+                return Error(new CourseErrorViewModel()
+                {
+                    ErrorMessage = errorMessage,
+                    Success = false,
+                });
             }
 
             return View(course);
@@ -136,23 +143,23 @@ namespace Colegio.WebApp.Controllers
 
 
                 var deleted = await _courseService.Remove(course, GetToken());
-                if (deleted) return RedirectToAction("Index", "Course");
+                if (deleted.Success) return RedirectToAction("Index", "Course");
 
-                return await Error(
-              new CourseErrorViewModel
-              {
-                  ErrorMessage = "There's a problem with the server!",
-                  Success = false
-              }
-          );
+            var error = new CourseErrorViewModel();
+            error.Success = false;
+            foreach(var item in deleted.Errors)
+            {
+                error.ErrorMessage.Add(item.Message);
+            }
+
+            return RedirectToAction("Error", "Course", error);
      
         }
 
 
-        public async Task<IActionResult> Error(CourseErrorViewModel error)
+        public IActionResult Error(CourseErrorViewModel error)
         {
-            ViewBag["error"] = error;
-            return View();
+            return View(error);
         }
 
 
@@ -161,7 +168,7 @@ namespace Colegio.WebApp.Controllers
     public class CourseErrorViewModel
     {
         public bool Success { get; set; }
-        public string ErrorMessage { get; set; } 
+        public List<string> ErrorMessage { get; set; } = new List<string>();
     }
 
 }

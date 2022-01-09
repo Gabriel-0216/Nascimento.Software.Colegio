@@ -18,7 +18,14 @@ namespace Colegio.WebApp.Controllers
             var studentList = await _studentService.GetAll(GetToken());
             return View(studentList.Take(5));
         }
-        private string GetToken() => Request.Cookies["JwtToken"];
+        private string GetToken()
+        {
+            var token = Request.Cookies["JwtToken"];
+            if (token == null) return string.Empty;
+
+            return token;
+        }
+
         private bool IsTokenValid()
         {
             var token = GetToken();
@@ -43,7 +50,7 @@ namespace Colegio.WebApp.Controllers
 
         }
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
@@ -57,7 +64,7 @@ namespace Colegio.WebApp.Controllers
             if (ModelState.IsValid)
             {
                 var inserted = await _studentService.Add(student, GetToken());
-                if (inserted) return RedirectToAction("StudentsList", "Students");
+                if (inserted.Success) return RedirectToAction("StudentsList", "Students");
             }
             return RedirectToAction("Error", "Home");
         }
@@ -80,7 +87,7 @@ namespace Colegio.WebApp.Controllers
             if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
             var updated = await _studentService.Update(student, GetToken());
-            if (updated) return RedirectToAction("StudentsList", "Students");
+            if (updated.Success) return RedirectToAction("StudentsList", "Students");
 
             return RedirectToAction("Error", "Home");
         }
@@ -103,13 +110,13 @@ namespace Colegio.WebApp.Controllers
             if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
             var deleted = await _studentService.Remove(student, GetToken());
-            if (deleted) return RedirectToAction("StudentsList", "Students");
+            if (deleted.Success) return RedirectToAction("StudentsList", "Students");
 
             return RedirectToAction("Error", "Home");
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(string Id)
+        public IActionResult Details(string Id)
         {
             return View();
         }

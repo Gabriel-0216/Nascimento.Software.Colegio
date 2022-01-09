@@ -4,8 +4,8 @@
     {
         Task<T> GetById(string Id, string jwtToken);
         Task<IEnumerable<T>> GetAll(string jwtToken);
-        Task<bool> Add(T entity, string jwtToken);
-        Task<bool> Update(T entity, string jwtToken);
-        Task<bool> Remove(T entity, string jwtToken);
+        Task<ServiceReturn> Add(T entity, string jwtToken);
+        Task<ServiceReturn> Update(T entity, string jwtToken);
+        Task<ServiceReturn> Remove(T entity, string jwtToken);
     }
 }

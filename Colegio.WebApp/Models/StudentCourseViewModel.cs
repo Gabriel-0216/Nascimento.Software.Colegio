@@ -10,8 +10,8 @@ namespace Colegio.WebApp.Models
         [Display(Name = "Estudante")]
         public Guid Student_Id { get; set; }
         public bool Active { get; set; }
-        public List<Course> Courses { get; set; }
-        public List<Student> Students { get; set; }
+        public List<Course>? Courses { get; set; }
+        public List<Student>? Students { get; set; }
 
     }
 }

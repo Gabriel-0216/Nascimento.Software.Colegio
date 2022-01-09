@@ -16,7 +16,7 @@ namespace Colegio.WebApp.Services
             _client = client;
             _config = config;
         }
-        public async Task<bool> Add(StudentCourseViewModel entity, string jwtToken)
+        public async Task<ServiceReturn> Add(StudentCourseViewModel entity, string jwtToken)
         {
             var client = _client.CreateClient();
             client.BaseAddress = new Uri($"{_config.GetSection("ApiColegio").Value}");
@@ -30,9 +30,22 @@ namespace Colegio.WebApp.Services
             var response = await client.PostAsync("api/StudentCourse/insert-new-student_course", studentCourseJson);
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return new ServiceReturn
+                {
+                    Success = true,
+                };
             }
-            return false;
+            var serviceReturn = new ServiceReturn();
+            serviceReturn.Success = false;
+            serviceReturn.Errors = new List<Error>();
+            var message = await response.Content.ReadAsStringAsync();
+            serviceReturn.Errors.Add(new Error
+            {
+                Code = response.StatusCode.ToString(),
+                Message = message == null ? string.Empty : message
+            });
+
+            return serviceReturn;
         }
 
         public async Task<IEnumerable<StudentCourseViewModel>> GetAll(string jwtToken)
@@ -70,17 +83,17 @@ namespace Colegio.WebApp.Services
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadFromJsonAsync<StudentCourseViewModel>();
-                return content;
+                if (content != null) return content;
             }
-            return null;
+            throw new Exception();
         }
 
-        public Task<bool> Remove(StudentCourseViewModel entity, string jwtToken)
+        public Task<ServiceReturn> Remove(StudentCourseViewModel entity, string jwtToken)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> Update(StudentCourseViewModel entity, string jwtToken)
+        public async Task<ServiceReturn> Update(StudentCourseViewModel entity, string jwtToken)
         {
             var studentCourseJson = new StringContent(JsonConvert.SerializeObject(entity),
                                                         Encoding.UTF8,
@@ -92,9 +105,22 @@ namespace Colegio.WebApp.Services
             var response = await client.PostAsync("api/StudentCourse/update-student_course-status", studentCourseJson);
             if (response.IsSuccessStatusCode)
             {
-                return true;
+                return new ServiceReturn
+                {
+                    Success = true,
+                };
             }
-            return false;
+            var serviceReturn = new ServiceReturn();
+            serviceReturn.Success = false;
+            serviceReturn.Errors = new List<Error>();
+            var message = await response.Content.ReadAsStringAsync();
+            serviceReturn.Errors.Add(new Error
+            {
+                Code = response.StatusCode.ToString(),
+                Message = message == null ? string.Empty : message
+            });
+
+            return serviceReturn;
         }
     }
 }

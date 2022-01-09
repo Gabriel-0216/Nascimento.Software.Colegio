@@ -67,7 +67,7 @@ namespace Colegio.WebApp.Controllers
             if(!string.IsNullOrWhiteSpace(model.Course_Id.ToString()) || !string.IsNullOrWhiteSpace(model.Student_Id.ToString()))
             {
                 var inserted = await _studentCourseSvc.Add(model, GetToken());
-                if (inserted) return RedirectToAction("Index", "StudentCourse");
+                if (inserted.Success) return RedirectToAction("Index", "StudentCourse");
             }      
 
             return RedirectToAction("Error", "Home");
@@ -103,7 +103,7 @@ namespace Colegio.WebApp.Controllers
                 Student_Id = model.Student_Id,
                 Course_Id = model.Course_Id,
             }, GetToken());
-            if (updated) return RedirectToAction("Index", "StudentCourse");
+            if (updated.Success) return RedirectToAction("Index", "StudentCourse");
 
 
             return RedirectToAction("Error", "Home");
@@ -114,7 +114,13 @@ namespace Colegio.WebApp.Controllers
 
 
 
-        private string GetToken() => Request.Cookies["JwtToken"];
+        private string GetToken()
+        {
+            var token = Request.Cookies["JwtToken"];
+            if (token == null) return string.Empty;
+
+            return token;
+        }
 
         private bool IsTokenValid()
         {
