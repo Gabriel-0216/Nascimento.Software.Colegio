@@ -14,8 +14,24 @@ namespace Colegio.WebApp.Controllers
             _logger = logger;
         }
 
+        private string GetToken() => Request.Cookies["JwtToken"];
+
+        private bool IsTokenValid()
+        {
+            var token = GetToken();
+            if (token == null || string.IsNullOrWhiteSpace(token)) return false;
+
+            var tokenExpireDate = Request.Cookies["ExpireDate"];
+            if (tokenExpireDate == null || string.IsNullOrWhiteSpace(tokenExpireDate)
+                || DateTime.Now > Convert.ToDateTime(tokenExpireDate)) return false;
+
+            return true;
+
+        }
         public async Task<IActionResult> Index([FromServices] IAuthService _servc)
-        { 
+        {
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+        
             return View();
         }
         [HttpGet]

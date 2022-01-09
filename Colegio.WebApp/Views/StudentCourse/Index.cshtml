@@ -1,0 +1,58 @@
+﻿@model IEnumerable<Colegio.WebApp.Models.StudentCourseIndex>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Registration">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Student Id
+            </th>
+            <th>
+                Student Name
+            </th>
+            <th>
+                Course Id
+            </th>
+            <th>
+                Course Name
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+           <td>
+               @Html.DisplayFor(modelItem => item.Student.Id)
+           </td>
+            <td>
+               @Html.DisplayFor(modelItem => item.Student.Name)
+           </td>
+            <td>
+               @Html.DisplayFor(modelItem => item.Course.Id)
+           </td>
+           <td>
+               @Html.DisplayFor(modelItem => item.Course.Title)
+           </td>
+
+            <td>
+
+            </td>
+
+
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { courseId = item.Course.Id, studentId = item.Student.Id }) |
+                @Html.ActionLink("Update", "UpdateStatus", new { courseId = item.Course.Id, studentId = item.Student.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -11,6 +11,7 @@ var apiConnection = builder.Configuration.GetSection("ApiColegio");
 builder.Services.AddScoped<IService<Student>, StudentService>();
 builder.Services.AddScoped<IService<Course>, CourseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IStudentCourseService, StudentCourseService>();
 
 builder.Services.AddHttpClient();
 

@@ -10,7 +10,6 @@ namespace Domain.Entity
         public Guid Student_Id { get; set; }
         [Required]
         public bool Active { get; set; }
-
         public DateTime Created_Date { get; set; }
         public DateTime Updated_At { get; set; }
 

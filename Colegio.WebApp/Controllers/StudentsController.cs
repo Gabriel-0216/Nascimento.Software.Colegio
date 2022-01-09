@@ -59,7 +59,7 @@ namespace Colegio.WebApp.Controllers
                 var inserted = await _studentService.Add(student, GetToken());
                 if (inserted) return RedirectToAction("StudentsList", "Students");
             }
-            return NotFound();
+            return RedirectToAction("Error", "Home");
         }
 
         [HttpGet]
@@ -82,7 +82,7 @@ namespace Colegio.WebApp.Controllers
             var updated = await _studentService.Update(student, GetToken());
             if (updated) return RedirectToAction("StudentsList", "Students");
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Error", "Home");
         }
 
         [HttpGet]
@@ -105,14 +105,7 @@ namespace Colegio.WebApp.Controllers
             var deleted = await _studentService.Remove(student, GetToken());
             if (deleted) return RedirectToAction("StudentsList", "Students");
 
-            return RedirectToAction("Index", "Home");
-            /* ToDo: Desenvolver o resto das telas de estudante [PRIMEIRO]
-             * [Segundo] DESENVOLVER AS TELAS DE CURSOS
-             * [TERCEIRO] Desenvolver a tela de cadastrar um aluno em um curso
-             *
-             *
-             *
-             */
+            return RedirectToAction("Error", "Home");
         }
 
         [HttpGet]
