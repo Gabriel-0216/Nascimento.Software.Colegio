@@ -6,27 +6,28 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Colegio.WebApp.Services
 {
-    public class StudentService : IService<Student>
+    public class CourseService : IService<Course>
     {
         private readonly IHttpClientFactory _client;
         private readonly IConfiguration _config;
-        public StudentService(IHttpClientFactory _clientFactory, IConfiguration config)
+
+        public CourseService(IHttpClientFactory _clientFactory, IConfiguration config)
         {
             _client = _clientFactory;
             _config = config;
         }
-        public async Task<bool> Add(Student entity, string jwtToken)
+        public async Task<bool> Add(Course entity, string jwtToken)
         {
             var client = _client.CreateClient();
             client.BaseAddress = new Uri($"{_config.GetSection("ApiColegio").Value}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", $"{jwtToken}");
 
-            var studentJson = new StringContent(
+            var courseJson = new StringContent(
                     JsonConvert.SerializeObject(entity),
                     Encoding.UTF8,
                     Application.Json);
-            var response = await client.PostAsync("/api/student/insert-new-student", studentJson);
 
+            var response = await client.PostAsync("/api/Course/insert-new-course", courseJson);
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -34,44 +35,44 @@ namespace Colegio.WebApp.Services
             return false;
         }
 
-        public async Task<IEnumerable<Student>> GetAll(string jwtToken)
+        public async Task<IEnumerable<Course>> GetAll(string jwtToken)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{_config.GetSection("ApiColegio").Value}/api/Student/get-all-students");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_config.GetSection("ApiColegio").Value}/api/Course/get-all-courses");
             var client = _client.CreateClient();
-            request.Headers.Add("Authorization", $"Bearer {jwtToken}");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", $"{jwtToken}");
+
             var response = await client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadFromJsonAsync<IEnumerable<Student>>();
+                var content = await response.Content.ReadFromJsonAsync<IEnumerable<Course>>();
                 if (content != null) return content;
 
-                return Enumerable.Empty<Student>();
-
+                return Enumerable.Empty<Course>();
             }
             throw new Exception("Ocorreu um erro ao fazer a requisição no servidor");
         }
 
-        public async Task<Student> GetById(string Id, string jwtToken)
+        public async Task<Course> GetById(string Id, string jwtToken)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{_config.GetSection("ApiColegio").Value}/api/Student/get-one-student");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_config.GetSection("ApiColegio").Value}/api/Course/get-course-by-id");
             var client = _client.CreateClient();
             request.Headers.Add("Authorization", $"Bearer {jwtToken}");
-            request.Headers.Add("Id", Id.ToString());
-            var response = await client.SendAsync(request);
+            request.Headers.Add("courseId", Id.ToString());
 
+            var response = await client.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadFromJsonAsync<Student>();
+                var content = await response.Content.ReadFromJsonAsync<Course>();
                 return content;
             }
             return null;
-        }
 
-        public async Task<bool> Remove(Student entity, string jwtToken)
+        }
+        public async Task<bool> Remove(Course entity, string jwtToken)
         {
             var client = _client.CreateClient();
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_config.GetSection("ApiColegio").Value}/api/Student/delete-student");
-            request.Headers.Add("Id", entity.Id.ToString());
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_config.GetSection("ApiColegio").Value}/api/Course/delete-course");
+            request.Headers.Add("courseId", entity.Id.ToString());
             request.Headers.Add("Authorization", $"Bearer {jwtToken}");
             var response = await client.SendAsync(request);
             if (response.IsSuccessStatusCode)
@@ -81,32 +82,30 @@ namespace Colegio.WebApp.Services
             return false;
         }
 
-        public async Task<bool> Update(Student entity, string jwtToken)
+        public async Task<bool> Update(Course entity, string jwtToken)
         {
             var p = new
             {
-                Name = entity.Name,
-                Phone = entity.Phone,
-                Email = entity.Email,
-                Birthdate = entity.Birthdate,
+                Title = entity.Title,
+                Resume = entity.Resume,
             };
-            var studentJson = new StringContent(
-                    JsonConvert.SerializeObject(p),
-                    Encoding.UTF8,
-                    Application.Json);
 
             var client = _client.CreateClient();
             client.BaseAddress = new Uri($"{_config.GetSection("ApiColegio").Value}");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", $"{jwtToken}");
-            client.DefaultRequestHeaders.Add("Id", entity.Id.ToString());
+            client.DefaultRequestHeaders.Add("courseId", entity.Id.ToString());
+            var courseJson = new StringContent(
+                    JsonConvert.SerializeObject(p),
+                    Encoding.UTF8,
+                    Application.Json);
 
-            var response = await client.PutAsync("/api/Student/update-student", studentJson);
-
+            var response = await client.PutAsync("/api/Course/update-course", courseJson);
             if (response.IsSuccessStatusCode)
             {
                 return true;
             }
             return false;
+
         }
     }
 }

@@ -1,7 +1,5 @@
-using Colegio.WebApp.Data;
 using Colegio.WebApp.Models;
 using Colegio.WebApp.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,16 +9,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 var apiConnection = builder.Configuration.GetSection("ApiColegio");
 
 builder.Services.AddScoped<IService<Student>, StudentService>();
+builder.Services.AddScoped<IService<Course>, CourseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession(options =>
@@ -57,6 +54,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapRazorPages();
+
 
 app.Run();

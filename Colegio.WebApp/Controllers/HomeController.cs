@@ -21,22 +21,28 @@ namespace Colegio.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
-            if (!string.IsNullOrWhiteSpace(Request.Cookies["JwtToken"]))
+            var token = Request.Cookies["JwtToken"];
+            var tokenExpireDate = Request.Cookies["ExpireDate"];
+
+            if(string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(tokenExpireDate) || DateTime.Now > Convert.ToDateTime(tokenExpireDate))
             {
-                return RedirectToAction("UserPanel", "Home");
+                return View();
+
             }
-            return View();
+            return RedirectToAction("UserPanel", "Home");
         }
         [HttpGet]
         public async Task<IActionResult> UserPanel([FromServices] IAuthService _service)
         {
             var token = Request.Cookies["JwtToken"];
             var email = Request.Cookies["Email"];
+            var tokenExpireDate = Request.Cookies["ExpireDate"];
 
-            if(string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email) || DateTime.Now > Convert.ToDateTime(tokenExpireDate))
             {
                 return Unauthorized();
             }
+
             var user = await _service.GetUserByEmail(email, token);
 
             return View(user); // essa tela vai servir pra logoff, lembrar de apagar os cookies do navegador
@@ -103,6 +109,7 @@ namespace Colegio.WebApp.Controllers
         private bool SetTokenInCookies(string token, string email)
         {
             Response.Cookies.Append("JwtToken", token);
+            Response.Cookies.Append("ExpireDate", DateTime.Now.AddHours(6).ToString()) ;
             Response.Cookies.Append("Email", email);
             return true;
 

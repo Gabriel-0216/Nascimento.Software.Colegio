@@ -4,6 +4,7 @@ namespace Colegio.WebApp.Models
 {
     public class Student
     {
+        public Guid Id { get; set; }
         [Required]
         [DataType(DataType.Text)]
         public string Name { get; set; } = string.Empty;

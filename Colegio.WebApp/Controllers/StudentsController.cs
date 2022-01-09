@@ -11,16 +11,33 @@ namespace Colegio.WebApp.Controllers
         {
             _studentService = service;
         }
+        public async Task<IActionResult> Index()
+        {
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+
+            var studentList = await _studentService.GetAll(GetToken());
+            return View(studentList.Take(5));
+        }
         private string GetToken() => Request.Cookies["JwtToken"];
+        private bool IsTokenValid()
+        {
+            var token = GetToken();
+            if (token == null || string.IsNullOrWhiteSpace(token)) return false;
+
+            var tokenExpireDate = Request.Cookies["ExpireDate"];
+            if (tokenExpireDate == null || string.IsNullOrWhiteSpace(tokenExpireDate) 
+                || DateTime.Now > Convert.ToDateTime(tokenExpireDate)) return false;
+
+            return true;
+
+        } 
+
         [HttpGet]
         public async Task<IActionResult> StudentsList()
         {
-            var token = GetToken();
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return RedirectToAction("Login", "Home");
-            }
-            var studentList = await _studentService.GetAll(token);
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+
+            var studentList = await _studentService.GetAll(GetToken());
 
             return View(studentList);
 
@@ -28,23 +45,18 @@ namespace Colegio.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var token = GetToken();
-            if (string.IsNullOrWhiteSpace(token)) return RedirectToAction("Login", "Home");
-
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
             return View();
         }
         [HttpPost]
         public async Task<IActionResult> Create(Student student)
         {
-            var token = GetToken();
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return RedirectToAction("Login", "Home");
-            }
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+
             if (ModelState.IsValid)
             {
-                var inserted = await _studentService.Add(student, token);
+                var inserted = await _studentService.Add(student, GetToken());
                 if (inserted) return RedirectToAction("StudentsList", "Students");
             }
             return NotFound();
@@ -53,29 +65,60 @@ namespace Colegio.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(string Id)
         {
-            return Unauthorized();
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+
+            var student = await _studentService.GetById(Id, GetToken());
+            if (student == null) return RedirectToAction("Index", "Students");
+
+            return View(student);
 
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(Student student)
         {
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
-            return Unauthorized();
+            var updated = await _studentService.Update(student, GetToken());
+            if (updated) return RedirectToAction("StudentsList", "Students");
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
         public async Task<IActionResult> Delete(string Id)
         {
-            return Unauthorized();
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
+
+            var student = await _studentService.GetById(Id, GetToken());
+            if (student == null) return RedirectToAction("Index", "Students");
+
+            return View(student);
 
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(Student student)
         {
-            return Unauthorized();
+            if (!IsTokenValid()) return RedirectToAction("Login", "Home");
 
+            var deleted = await _studentService.Remove(student, GetToken());
+            if (deleted) return RedirectToAction("StudentsList", "Students");
+
+            return RedirectToAction("Index", "Home");
+            /* ToDo: Desenvolver o resto das telas de estudante [PRIMEIRO]
+             * [Segundo] DESENVOLVER AS TELAS DE CURSOS
+             * [TERCEIRO] Desenvolver a tela de cadastrar um aluno em um curso
+             *
+             *
+             *
+             */
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string Id)
+        {
+            return View();
         }
 
     }
